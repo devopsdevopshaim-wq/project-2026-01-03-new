@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRO Network Hosting System - מוניטורינג מקצועי</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+            --sidebar-width: 300px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--dark);
+            color: white;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: #111827;
+            border-right: 1px solid #374151;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .logo {
+            padding: 20px;
+            border-bottom: 1px solid #374151;
+            text-align: center;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--primary), #7c3aed);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .server-status {
+            padding: 20px;
+            border-bottom: 1px solid #374151;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--danger);
+        }
+
+        .status-dot.online {
+            background: var(--success);
+            box-shadow: 0 0 10px var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .server-info {
+            background: #1f2937;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: #1f2937;
+        }
+
+        .nav-item.active {
+            background: #1f2937;
+            border-left-color: var(--primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            height: 60px;
+            background: #111827;
+            border-bottom: 1px solid #374151;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 30px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dashboard {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            grid-template-rows: repeat(12, 1fr);
+            gap: 20px;
+        }
+
+        /* Dashboard Panels */
+        .panel {
+            background: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 15px 20px;
+            background: #111827;
+            border-bottom: 1px solid #374151;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+        }
+
+        .panel-content {
+            padding: 20px;
+            height: calc(100% - 60px);
+            overflow: auto;
+        }
+
+        /* Panel Sizes */
+        .panel-large {
+            grid-column: span 8;
+            grid-row: span 6;
+        }
+
+        .panel-medium {
+            grid-column: span 4;
+            grid-row: span 6;
+        }
+
+        .panel-small {
+            grid-column: span 3;
+            grid-row: span 3;
+        }
+
+        /* Network Traffic Panel */
+        .traffic-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .traffic-item {
+            background: #111827;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .traffic-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .traffic-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            font-size: 0.85rem;
+            color: #9ca3af;
+        }
+
+        .protocol-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .protocol-http { background: #3b82f6; color: white; }
+        .protocol-https { background: #10b981; color: white; }
+        .protocol-ws { background: #f59e0b; color: white; }
+        .protocol-other { background: #6b7280; color: white; }
+
+        /* Live Packet Monitor */
+        .packet-monitor {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .packet-row {
+            padding: 5px 0;
+            border-bottom: 1px solid #374151;
+            display: flex;
+            gap: 10px;
+        }
+
+        .packet-time {
+            color: var(--success);
+            min-width: 100px;
+        }
+
+        .packet-src {
+            color: #60a5fa;
+        }
+
+        .packet-dst {
+            color: #f472b6;
+        }
+
+        .packet-info {
+            color: #9ca3af;
+        }
+
+        /* Process Monitor */
+        .process-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .process-card {
+            background: #111827;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #374151;
+        }
+
+        .process-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .process-status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-left: 5px;
+        }
+
+        .status-running { background: var(--success); }
+        .status-stopped { background: var(--danger); }
+        .status-waiting { background: var(--warning); }
+
+        /* File Manager */
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .file-card {
+            background: #111827;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #374151;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .file-icon {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        /* Connection Graph */
+        .connection-graph {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .node {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(37, 99, 235, 0.5);
+        }
+
+        /* Metrics */
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .metric-card {
+            background: #111827;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .metric-label {
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            background: var(--primary);
+            color: white;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 12px;
+            background: #111827;
+            border-bottom: 1px solid #374151;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #374151;
+        }
+
+        /* Upload Area */
+        .upload-area {
+            border: 3px dashed #374151;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(37, 99, 235, 0.1);
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            background: var(--dark);
+            color: white;
+            text-align: center;
+            padding: 5px 10px;
+            border-radius: 6px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            font-size: 0.8rem;
+            border: 1px solid #374151;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+        }
+
+        /* Animations */
+        .blink {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <h1><i class="fas fa-server"></i> PRO Network Host</h1>
+        </div>
+
+        <div class="server-status">
+            <div class="status-indicator">
+                <div class="status-dot" id="serverStatusDot"></div>
+                <span id="serverStatusText">מתחבר...</span>
+            </div>
+            <div class="server-info">
+                <div><strong>כתובת:</strong> <span id="serverAddress">-</span></div>
+                <div><strong>פורט:</strong> <span id="serverPort">-</span></div>
+                <div><strong>זמן פעילות:</strong> <span id="uptime">00:00:00</span></div>
+            </div>
+        </div>
+
+        <div class="nav-menu">
+            <div class="nav-item active" onclick="switchView('dashboard')">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>פאנל ניהול</span>
+            </div>
+            <div class="nav-item" onclick="switchView('files')">
+                <i class="fas fa-file-code"></i>
+                <span>קבצים פעילים</span>
+            </div>
+            <div class="nav-item" onclick="switchView('network')">
+                <i class="fas fa-network-wired"></i>
+                <span>ניטור רשת</span>
+            </div>
+            <div class="nav-item" onclick="switchView('processes')">
+                <i class="fas fa-microchip"></i>
+                <span>תהליכים</span>
+            </div>
+            <div class="nav-item" onclick="switchView('security')">
+                <i class="fas fa-shield-alt"></i>
+                <span>אבטחה</span>
+            </div>
+            <div class="nav-item" onclick="switchView('logs')">
+                <i class="fas fa-clipboard-list"></i>
+                <span>לוגים</span>
+            </div>
+            <div class="nav-item" onclick="switchView('settings')">
+                <i class="fas fa-cog"></i>
+                <span>הגדרות</span>
+            </div>
+        </div>
+
+        <div style="padding: 20px; border-top: 1px solid #374151;">
+            <button class="btn btn-success" style="width: 100%;" onclick="startAutoServer()">
+                <i class="fas fa-play"></i> הפעל שרת אוטומטי
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <i class="fas fa-plug" style="color: var(--success);"></i>
+                    <span>חיבורים: <strong id="connectionsCount">0</strong></span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-download" style="color: var(--primary);"></i>
+                    <span>תעבורה: <strong id="trafficRate">0 KB/s</strong></span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-memory" style="color: var(--warning);"></i>
+                    <span>זיכרון: <strong id="memoryUsage">0%</strong></span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-cogs" style="color: #8b5cf6;"></i>
+                    <span>תהליכים: <strong id="processesCount">0</strong></span>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" onclick="uploadFile()">
+                    <i class="fas fa-upload"></i> העלה קובץ
+                </button>
+                <button class="btn btn-danger" onclick="stopAllServers()">
+                    <i class="fas fa-stop"></i> עצור הכל
+                </button>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="dashboard" id="dashboardView">
+            <!-- Network Traffic Monitor -->
+            <div class="panel panel-large">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fas fa-traffic-light"></i>
+                        <span>תעבורת רשת בזמן אמת</span>
+                    </div>
+                    <div>
+                        <button class="btn btn-small" onclick="clearTrafficLog()">
+                            <i class="fas fa-trash"></i> נקה
+                        </button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="traffic-list" id="trafficList">
+                        <!-- Traffic items will be added here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Packets (Wireshark-like) -->
+            <div class="panel panel-large">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fas fa-satellite-dish"></i>
+                        <span>Live Packet Capture</span>
+                    </div>
+                    <div>
+                        <span class="blink" style="color: var(--danger);">
+                            <i class="fas fa-circle"></i> RECORDING
+                        </span>
+                    </div>
+                </div>
+                <div class="panel-content packet-monitor" id="packetMonitor">
+                    <!-- Packets will be added here -->
+                </div>
+            </div>
+
+            <!-- Active Files -->
+            <div class="panel panel-medium">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fas fa-file-medical-alt"></i>
+                        <span>קבצים פעילים</span>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="file-grid" id="activeFiles">
+                        <!-- Active files will be added here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Server Processes -->
+            <div class="panel panel-medium">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fas fa-tasks"></i>
+                        <span>תהליכי שרת</span>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="process-grid" id="processGrid">
+                        <!-- Processes will be added here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Map -->
+            <div class="panel panel-medium">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fas fa-project-diagram"></i>
+                        <span>מפת רשת</span>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="connection-graph" id="networkGraph">
+                        <!-- Network graph will be rendered here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Metrics -->
+            <div class="panel panel-small">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fas fa-chart-line"></i>
+                        <span>CPU</span>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="metric-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="cpuUsage">0%</div>
+                            <div class="metric-label">שימוש מעבד</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="cpuCores">0</div>
+                            <div class="metric-label">ליבות</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel panel-small">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fas fa-database"></i>
+                        <span>זיכרון</span>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="metric-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="ramUsage">0 MB</div>
+                            <div class="metric-label">בשימוש</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="ramTotal">0 MB</div>
+                            <div class="metric-label">סה"כ</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel panel-small">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fas fa-hdd"></i>
+                        <span>אחסון</span>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="metric-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="storageUsed">0 MB</div>
+                            <div class="metric-label">בשימוש</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="storageFree">0 MB</div>
+                            <div class="metric-label">פנוי</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel panel-small">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fas fa-bolt"></i>
+                        <span>ביצועים</span>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="metric-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="responseTime">0ms</div>
+                            <div class="metric-label">זמן תגובה</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="requestsSec">0/s</div>
+                            <div class="metric-label">בקשות לשנייה</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Other Views (Hidden by default) -->
+        <div class="dashboard" id="filesView" style="display: none;">
+            <!-- Files management view -->
+        </div>
+    </div>
+
+    <!-- File Upload Modal -->
+    <div id="uploadModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+        <div style="background: #1f2937; padding: 30px; border-radius: 10px; width: 500px; border: 1px solid #374151;">
+            <h2 style="margin-bottom: 20px;"><i class="fas fa-upload"></i> העלאת קובץ</h2>
+            <div class="upload-area" onclick="document.getElementById('realFileInput').click()">
+                <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; margin-bottom: 20px; color: var(--primary);"></i>
+                <p>גרור קובץ HTML לכאן או לחץ לבחירה</p>
+                <input type="file" id="realFileInput" accept=".html,.htm" style="display: none;">
+            </div>
+            <div style="margin-top: 20px;">
+                <label>סוג אירוח:</label>
+                <select id="hostingTypeSelect" style="width: 100%; padding: 10px; margin: 10px 0; background: #111827; color: white; border: 1px solid #374151; border-radius: 6px;">
+                    <option value="auto">בחירה אוטומטית</option>
+                    <option value="local">שרת מקומי</option>
+                    <option value="docker">Docker Container</option>
+                    <option value="cloudflare">Cloudflare Workers</option>
+                    <option value="aws">AWS S3</option>
+                    <option value="github">GitHub Pages</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn" onclick="processUpload()">העלה והפעל</button>
+                <button class="btn btn-danger" onclick="closeUploadModal()">ביטול</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global State
+        const state = {
+            servers: [],
+            activeConnections: [],
+            networkTraffic: [],
+            packets: [],
+            processes: [],
+            metrics: {
+                cpu: 0,
+                memory: 0,
+                traffic: 0,
+                connections: 0
+            },
+            startTime: Date.now()
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUptime();
+            setInterval(updateUptime, 1000);
+            setInterval(updateMetrics, 2000);
+            setInterval(simulateNetworkTraffic, 1000);
+            setInterval(simulatePackets, 500);
+            setInterval(updateProcesses, 3000);
+            checkServerStatus();
+            
+            // Setup file input
+            document.getElementById('realFileInput').addEventListener('change', handleFileSelect);
+        });
+
+        // View Switching
+        function switchView(viewName) {
+            // Hide all views
+            document.querySelectorAll('.dashboard').forEach(view => {
+                view.style.display = 'none';
+            });
+            
+            // Show selected view
+            document.getElementById(viewName + 'View').style.display = 'grid';
+            
+            // Update nav
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.nav-item').classList.add('active');
+        }
+
+        // File Upload
+        function uploadFile() {
+            document.getElementById('uploadModal').style.display = 'flex';
+        }
+
+        function closeUploadModal() {
+            document.getElementById('uploadModal').style.display = 'none';
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file && (file.name.endsWith('.html') || file.name.endsWith('.htm'))) {
+                document.querySelector('.upload-area').innerHTML = `
+                    <i class="fas fa-check-circle" style="color: var(--success); font-size: 3rem; margin-bottom: 20px;"></i>
+                    <p><strong>${file.name}</strong> נבחר</p>
+                    <p style="color: #9ca3af; font-size: 0.9rem;">גודל: ${(file.size / 1024).toFixed(2)} KB</p>
+                `;
+            }
+        }
+
+        // Server Management
+        async function startAutoServer() {
+            const statusDot = document.getElementById('serverStatusDot');
+            const statusText = document.getElementById('serverStatusText');
+            
+            statusText.textContent = 'מתחיל שרת...';
+            statusDot.style.background = 'var(--warning)';
+            
+            // Simulate server startup
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Create mock server
+            const server = {
+                id: Date.now(),
+                type: 'local',
+                address: '127.0.0.1',
+                port: Math.floor(Math.random() * 1000) + 8000,
+                status: 'running',
+                startTime: Date.now(),
+                traffic: 0,
+                connections: []
+            };
+            
+            state.servers.push(server);
+            
+            // Update UI
+            document.getElementById('serverAddress').textContent = server.address;
+            document.getElementById('serverPort').textContent = server.port;
+            statusDot.className = 'status-dot online';
+            statusText.textContent = 'פועל';
+            
+            // Add to active files
+            addActiveFile('index.html', server);
+            
+            showNotification('שרת הופעל בהצלחה!', 'success');
+        }
+
+        function stopAllServers() {
+            state.servers = [];
+            state.activeConnections = [];
+            state.networkTraffic = [];
+            state.packets = [];
+            
+            document.getElementById('serverStatusDot').className = 'status-dot';
+            document.getElementById('serverStatusText').textContent = 'כבוי';
+            document.getElementById('serverAddress').textContent = '-';
+            document.getElementById('serverPort').textContent = '-';
+            document.getElementById('activeFiles').innerHTML = '';
+            
+            showNotification('כל השרתים נעצרו', 'danger');
+        }
+
+        function checkServerStatus() {
+            const isOnline = state.servers.length > 0;
+            const statusDot = document.getElementById('serverStatusDot');
+            const statusText = document.getElementById('serverStatusText');
+            
+            if (isOnline) {
+                statusDot.className = 'status-dot online';
+                statusText.textContent = 'פועל';
+                
+                const server = state.servers[0];
+                document.getElementById('serverAddress').textContent = server.address;
+                document.getElementById('serverPort').textContent = server.port;
+            } else {
+                statusDot.className = 'status-dot';
+                statusText.textContent = 'כבוי';
+            }
+        }
+
+        // Metrics Updates
+        function updateUptime() {
+            const elapsed = Date.now() - state.startTime;
+            const hours = Math.floor(elapsed / 3600000);
+            const minutes = Math.floor((elapsed % 3600000) / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            
+            document.getElementById('uptime').textContent = 
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function updateMetrics() {
+            // Update stats bar
+            document.getElementById('connectionsCount').textContent = state.activeConnections.length;
+            document.getElementById('trafficRate').textContent = `${state.metrics.traffic} KB/s`;
+            document.getElementById('memoryUsage').textContent = `${state.metrics.memory}%`;
+            document.getElementById('processesCount').textContent = state.processes.length;
+            
+            // Update detailed metrics
+            document.getElementById('cpuUsage').textContent = `${state.metrics.cpu}%`;
+            document.getElementById('ramUsage').textContent = `${Math.round(state.metrics.memory * 16)} MB`;
+            document.getElementById('ramTotal').textContent = '16384 MB';
+            document.getElementById('storageUsed').textContent = `${state.servers.length * 2} MB`;
+            document.getElementById('storageFree').textContent = '998 MB';
+            document.getElementById('responseTime').textContent = `${Math.random() * 100 + 10}ms`;
+            document.getElementById('requestsSec').textContent = `${Math.floor(Math.random() * 50 + 10)}/s`;
+            
+            // Simulate metric changes
+            state.metrics.cpu = Math.min(100, Math.max(5, state.metrics.cpu + (Math.random() * 10 - 5)));
+            state.metrics.memory = Math.min(100, Math.max(10, state.metrics.memory + (Math.random() * 5 - 2.5)));
+            state.metrics.traffic = Math.floor(Math.random() * 1000 + 100);
+        }
+
+        // Network Simulation
+        function simulateNetworkTraffic() {
+            if (state.servers.length === 0) return;
+            
+            const protocols = ['HTTP', 'HTTPS', 'WebSocket', 'SSH', 'FTP'];
+            const methods = ['GET', 'POST', 'PUT', 'DELETE'];
+            const statusCodes = [200, 301, 404, 500];
+            const ips = [
+                '192.168.1.' + Math.floor(Math.random() * 255),
+                '10.0.0.' + Math.floor(Math.random() * 255),
+                '172.16.0.' + Math.floor(Math.random() * 255)
+            ];
+            
+            const traffic = {
+                timestamp: new Date().toLocaleTimeString('he-IL'),
+                protocol: protocols[Math.floor(Math.random() * protocols.length)],
+                src: ips[Math.floor(Math.random() * ips.length)],
+                dst: state.servers[0].address,
+                port: Math.floor(Math.random() * 1000) + 8000,
+                method: Math.random() > 0.5 ? methods[Math.floor(Math.random() * methods.length)] : null,
+                status: statusCodes[Math.floor(Math.random() * statusCodes.length)],
+                size: Math.floor(Math.random() * 10000) + 100
+            };
+            
+            state.networkTraffic.unshift(traffic);
+            if (state.networkTraffic.length > 10) state.networkTraffic.pop();
+            
+            updateTrafficDisplay();
+        }
+
+        function updateTrafficDisplay() {
+            const container = document.getElementById('trafficList');
+            container.innerHTML = '';
+            
+            state.networkTraffic.forEach(traffic => {
+                const protocolClass = `protocol-${traffic.protocol.toLowerCase()}`;
+                const div = document.createElement('div');
+                div.className = 'traffic-item';
+                div.innerHTML = `
+                    <div class="traffic-header">
+                        <span><strong>${traffic.protocol}</strong> ${traffic.method || ''}</span>
+                        <span style="color: ${traffic.status === 200 ? 'var(--success)' : 'var(--danger)'}">
+                            ${traffic.status}
+                        </span>
+                    </div>
+                    <div class="traffic-details">
+                        <div>
+                            <i class="fas fa-arrow-right" style="color: var(--primary);"></i>
+                            ${traffic.src}:${traffic.port}
+                        </div>
+                        <div>
+                            <i class="fas fa-arrow-left" style="color: var(--warning);"></i>
+                            ${traffic.dst}:${state.servers[0]?.port || '8080'}
+                        </div>
+                        <div>
+                            <i class="fas fa-weight-hanging"></i>
+                            ${traffic.size} bytes
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function simulatePackets() {
+            if (state.servers.length === 0) return;
+            
+            const packetTypes = ['TCP', 'UDP', 'ICMP', 'HTTP', 'DNS'];
+            const ips = [
+                `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+                `10.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`
+            ];
+            
+            const packet = {
+                time: new Date().toLocaleTimeString('he-IL', { hour12: false, fractionalSecondDigits: 3 }),
+                src: ips[0],
+                dst: ips[1],
+                protocol: packetTypes[Math.floor(Math.random() * packetTypes.length)],
+                length: Math.floor(Math.random() * 1500) + 64,
+                info: generatePacketInfo()
+            };
+            
+            state.packets.unshift(packet);
+            if (state.packets.length > 50) state.packets.pop();
+            
+            updatePacketDisplay();
+        }
+
+        function generatePacketInfo() {
+            const infos = [
+                'SYN',
+                'ACK',
+                'PSH, ACK',
+                'FIN, ACK',
+                'GET /index.html',
+                'POST /api/data',
+                'DNS Standard query',
+                'HTTP/1.1 200 OK',
+                'TCP Retransmission',
+                'ICMP Echo request'
+            ];
+            return infos[Math.floor(Math.random() * infos.length)];
+        }
+
+        function updatePacketDisplay() {
+            const container = document.getElementById('packetMonitor');
+            container.innerHTML = '';
+            
+            state.packets.forEach(packet => {
+                const div = document.createElement('div');
+                div.className = 'packet-row';
+                div.innerHTML = `
+                    <span class="packet-time">${packet.time}</span>
+                    <span class="packet-src">${packet.src}</span>
+                    <i class="fas fa-exchange-alt" style="color: #9ca3af;"></i>
+                    <span class="packet-dst">${packet.dst}</span>
+                    <span style="color: ${getProtocolColor(packet.protocol)}; margin-left: 10px;">
+                        ${packet.protocol}
+                    </span>
+                    <span style="margin-left: 10px; color: #9ca3af;">${packet.length}</span>
+                    <span class="packet-info" style="margin-left: 20px;">${packet.info}</span>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function getProtocolColor(protocol) {
+            switch(protocol) {
+                case 'TCP': return '#3b82f6';
+                case 'UDP': return '#10b981';
+                case 'ICMP': return '#f59e0b';
+                case 'HTTP': return '#ef4444';
+                case 'DNS': return '#8b5cf6';
+                default: return '#9ca3af';
+            }
+        }
+
+        // Process Management
+        function updateProcesses() {
+            const processes = [
+                { id: 1, name: 'nginx', pid: 1234, cpu: 2.5, memory: 120, status: 'running' },
+                { id: 2, name: 'node', pid: 5678, cpu: 15.3, memory: 320, status: 'running' },
+                { id: 3, name: 'mysql', pid: 9012, cpu: 8.7, memory: 450, status: 'running' },
+                { id: 4, name: 'redis', pid: 3456, cpu: 1.2, memory: 80, status: 'running' },
+                { id: 5, name: 'docker', pid: 7890, cpu: 5.6, memory: 210, status: 'running' },
+                { id: 6, name: 'python', pid: 2345, cpu: 3.4, memory: 150, status: 'stopped' }
+            ];
+            
+            state.processes = processes;
+            updateProcessDisplay();
+        }
+
+        function updateProcessDisplay() {
+            const container = document.getElementById('processGrid');
+            container.innerHTML = '';
+            
+            state.processes.forEach(proc => {
+                const div = document.createElement('div');
+                div.className = 'process-card';
+                div.innerHTML = `
+                    <div class="process-header">
+                        <span><strong>${proc.name}</strong></span>
+                        <div style="display: flex; align-items: center;">
+                            <span style="font-size: 0.8rem; color: #9ca3af;">PID: ${proc.pid}</span>
+                            <div class="process-status status-${proc.status}"></div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+                            <span>CPU: ${proc.cpu}%</span>
+                            <span>MEM: ${proc.memory}MB</span>
+                        </div>
+                        <div style="margin-top: 10px; display: flex; gap: 5px;">
+                            <button class="btn btn-small" style="padding: 3px 8px; font-size: 0.8rem;">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <button class="btn btn-small btn-danger" style="padding: 3px 8px; font-size: 0.8rem;">
+                                <i class="fas fa-stop"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        // File Management
+        function addActiveFile(filename, server) {
+            const container = document.getElementById('activeFiles');
+            const fileId = Date.now();
+            
+            const div = document.createElement('div');
+            div.className = 'file-card';
+            div.innerHTML = `
+                <div class="file-icon">
+                    <i class="fas fa-file-code"></i>
+                </div>
+                <h4 style="margin-bottom: 5px;">${filename}</h4>
+                <p style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 10px;">
+                    ${server.type.toUpperCase()} Server
+                </p>
+                <div style="font-size: 0.7rem;">
+                    <div>כתובת: ${server.address}:${server.port}</div>
+                    <div>סטטוס: <span style="color: var(--success);">פעיל</span></div>
+                </div>
+                <div style="margin-top: 10px; display: flex; gap: 5px;">
+                    <button class="btn btn-small" onclick="viewFile(${fileId})">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-small" onclick="copyLink(${fileId})">
+                        <i class="fas fa-link"></i>
+                    </button>
+                    <button class="btn btn-small btn-danger" onclick="stopFile(${fileId})">
+                        <i class="fas fa-stop"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function viewFile(fileId) {
+            // Open file in new window
+            const url = `http://localhost:${state.servers[0]?.port || 8080}/index.html`;
+            window.open(url, '_blank');
+            showNotification('פותח קובץ בחלון חדש', 'info');
+        }
+
+        function copyLink(fileId) {
+            const url = `http://localhost:${state.servers[0]?.port || 8080}/index.html`;
+            navigator.clipboard.writeText(url);
+            showNotification('קישור הועתק ללוח', 'success');
+        }
+
+        function stopFile(fileId) {
+            showNotification('קובץ נעצר', 'danger');
+        }
+
+        // UI Helpers
+        function showNotification(message, type) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                background: ${type === 'success' ? 'var(--success)' : type === 'danger' ? 'var(--danger)' : 'var(--primary)'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : 'info-circle'}"></i>
+                ${message}
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        function clearTrafficLog() {
+            state.networkTraffic = [];
+            state.packets = [];
+            updateTrafficDisplay();
+            updatePacketDisplay();
+            showNotification('לוגים נוקו', 'info');
+        }
+
+        // Process Upload
+        function processUpload() {
+            const fileInput = document.getElementById('realFileInput');
+            const hostingType = document.getElementById('hostingTypeSelect').value;
+            
+            if (!fileInput.files[0]) {
+                showNotification('אנא בחר קובץ תחילה', 'danger');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            
+            // Simulate upload and hosting
+            showNotification(`מעלה ומארח את ${file.name}...`, 'info');
+            
+            setTimeout(() => {
+                // Create server instance
+                const server = {
+                    id: Date.now(),
+                    type: hostingType === 'auto' ? 'local' : hostingType,
+                    address: '127.0.0.1',
+                    port: Math.floor(Math.random() * 1000) + 8000,
+                    status: 'running',
+                    startTime: Date.now(),
+                    filename: file.name
+                };
+                
+                state.servers.push(server);
+                addActiveFile(file.name, server);
+                
+                closeUploadModal();
+                showNotification(`קובץ ${file.name} הועלה והופעל בהצלחה!`, 'success');
+                
+                // Reset file input
+                fileInput.value = '';
+                document.querySelector('.upload-area').innerHTML = `
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; margin-bottom: 20px; color: var(--primary);"></i>
+                    <p>גרור קובץ HTML לכאן או לחץ לבחירה</p>
+                `;
+            }, 2000);
+        }
+
+        // Add CSS for animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize with sample data
+        setTimeout(() => {
+            updateProcesses();
+            simulateNetworkTraffic();
+            simulatePackets();
+        }, 1000);
+    </script>
+</body>
+</html>
